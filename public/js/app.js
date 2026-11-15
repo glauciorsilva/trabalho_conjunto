@@ -158,6 +158,7 @@ function onRemote(f) {
 $("#loadRemote").onclick = () => openFile(current);
 
 function openFile(id) {
+  closeDrawers();
   const f = files[id];
   current = id; loadedRev = f.revision;
   $("#remoteWarn").classList.add("hidden");
@@ -231,6 +232,12 @@ $("#toSandbox").onclick = () => current && openInSandbox(files[current].lang, ed
 document.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "s" && !$("#tab-code").classList.contains("hidden")) { e.preventDefault(); $("#saveFile").click(); }
 });
+
+/* Gavetas (celular) */
+function closeDrawers() { $$(".drawer").forEach((d) => d.classList.remove("open")); $("#backdrop").classList.add("hidden"); }
+$$("[data-drawer]").forEach((b) => (b.onclick = () => { $("#" + b.dataset.drawer).classList.add("open"); $("#backdrop").classList.remove("hidden"); }));
+$("#backdrop").onclick = closeDrawers;
+const scrollToOutput = () => { if (innerWidth <= 800) $(".output").scrollIntoView({ behavior: "smooth" }); };
 
 /* ================= SANDBOX ================= */
 const sb = {};
@@ -322,6 +329,7 @@ async function run() {
     else if (mode === "python") await runPython();
     else if (mode === "sql") await runSQL();
   } catch (e) { log(String(e), "err"); status(""); }
+  scrollToOutput();
 }
 $("#sbRun").onclick = run;
 document.addEventListener("keydown", (e) => {

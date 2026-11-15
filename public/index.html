@@ -2,7 +2,10 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d2026">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Trabalho Conjunto</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
@@ -65,7 +68,7 @@
 
   <!-- CÓDIGOS COMPARTILHADOS -->
   <section id="tab-code" class="tab hidden">
-    <aside>
+    <aside id="filesPanel" class="drawer left">
       <div class="row">
         <input id="newFileName" placeholder="novo_arquivo.py">
         <button id="newFileBtn">+</button>
@@ -74,17 +77,20 @@
     </aside>
     <div class="editor-wrap">
       <div class="toolbar">
+        <button class="mobile-only" data-drawer="filesPanel">📂</button>
         <span id="fileTitle" class="muted">Selecione ou crie um arquivo</span>
         <span id="fileMeta" class="muted small"></span>
         <input id="commitMsg" placeholder="Descrição da alteração (opcional)">
         <button id="saveFile" disabled>Salvar versão</button>
         <button id="toSandbox" disabled>Abrir no Sandbox</button>
         <button id="deleteFile" class="danger" disabled>Excluir</button>
+        <button class="mobile-only" data-drawer="histPanel">🕘</button>
       </div>
       <div id="remoteWarn" class="warn hidden">⚠ <span></span> salvou uma nova versão. <button id="loadRemote" class="link">Carregar</button></div>
       <textarea id="codeEditor"></textarea>
+      <div id="backdrop" class="backdrop hidden"></div>
     </div>
-    <aside class="history">
+    <aside id="histPanel" class="history drawer right">
       <h3>Histórico</h3>
       <ul id="revList"></ul>
     </aside>
