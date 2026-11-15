@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trabalho Conjunto</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- LOGIN -->
+<section id="auth" class="auth hidden">
+  <form id="authForm" class="card">
+    <h1>Trabalho Conjunto</h1>
+    <p class="muted">Acesso restrito aos membros.</p>
+    <input id="email" type="email" placeholder="E-mail" required autocomplete="email">
+    <input id="password" type="password" placeholder="Senha (mín. 6)" required minlength="6" autocomplete="current-password">
+    <input id="displayName" type="text" placeholder="Seu nome (só no cadastro)" class="hidden">
+    <button type="submit" id="authSubmit">Entrar</button>
+    <button type="button" id="toggleMode" class="link">Não tem conta? Cadastrar</button>
+    <button type="button" id="resetPwd" class="link">Esqueci a senha</button>
+    <p id="authMsg" class="msg"></p>
+  </form>
+</section>
+
+<!-- VERIFICAÇÃO / NÃO AUTORIZADO -->
+<section id="gate" class="auth hidden">
+  <div class="card">
+    <h2 id="gateTitle"></h2>
+    <p id="gateText" class="muted"></p>
+    <button id="gateResend">Reenviar verificação</button>
+    <button id="gateReload" class="link">Já verifiquei — recarregar</button>
+    <button class="link logout">Sair</button>
+  </div>
+</section>
+
+<!-- APP -->
+<main id="app" class="hidden">
+  <header>
+    <strong>Trabalho Conjunto</strong>
+    <nav>
+      <button data-tab="chat" class="active">💬 Chat</button>
+      <button data-tab="code">📁 Códigos</button>
+      <button data-tab="sandbox">🧪 Sandbox</button>
+    </nav>
+    <span id="me" class="muted"></span>
+    <button class="logout link">Sair</button>
+  </header>
+
+  <!-- CHAT -->
+  <section id="tab-chat" class="tab">
+    <div id="messages"></div>
+    <form id="chatForm">
+      <select id="msgLang" title="Tipo da mensagem">
+        <option value="">Texto</option>
+        <option value="python">Python</option><option value="javascript">JS</option>
+        <option value="html">HTML</option><option value="css">CSS</option><option value="sql">SQL</option>
+      </select>
+      <textarea id="msgText" rows="2" placeholder="Mensagem… (Enter envia, Shift+Enter quebra linha)"></textarea>
+      <button>Enviar</button>
+    </form>
+  </section>
+
+  <!-- CÓDIGOS COMPARTILHADOS -->
+  <section id="tab-code" class="tab hidden">
+    <aside>
+      <div class="row">
+        <input id="newFileName" placeholder="novo_arquivo.py">
+        <button id="newFileBtn">+</button>
+      </div>
+      <ul id="fileList"></ul>
+    </aside>
+    <div class="editor-wrap">
+      <div class="toolbar">
+        <span id="fileTitle" class="muted">Selecione ou crie um arquivo</span>
+        <span id="fileMeta" class="muted small"></span>
+        <input id="commitMsg" placeholder="Descrição da alteração (opcional)">
+        <button id="saveFile" disabled>Salvar versão</button>
+        <button id="toSandbox" disabled>Abrir no Sandbox</button>
+        <button id="deleteFile" class="danger" disabled>Excluir</button>
+      </div>
+      <div id="remoteWarn" class="warn hidden">⚠ <span></span> salvou uma nova versão. <button id="loadRemote" class="link">Carregar</button></div>
+      <textarea id="codeEditor"></textarea>
+    </div>
+    <aside class="history">
+      <h3>Histórico</h3>
+      <ul id="revList"></ul>
+    </aside>
+  </section>
+
+  <!-- SANDBOX -->
+  <section id="tab-sandbox" class="tab hidden">
+    <div class="toolbar">
+      <select id="sbMode">
+        <option value="web">Web (HTML + CSS + JS)</option>
+        <option value="python">Python (Pyodide)</option>
+        <option value="sql">SQL (SQLite)</option>
+        <option value="javascript">JavaScript (console)</option>
+      </select>
+      <button id="sbRun">▶ Executar (Ctrl+Enter)</button>
+      <button id="sbClear" class="link">Limpar saída</button>
+      <span id="sbStatus" class="muted small"></span>
+    </div>
+    <div id="sbEditors">
+      <div class="pane" data-lang="html"><label>HTML</label><textarea id="sb-html"></textarea></div>
+      <div class="pane" data-lang="css"><label>CSS</label><textarea id="sb-css"></textarea></div>
+      <div class="pane" data-lang="javascript"><label>JavaScript</label><textarea id="sb-javascript"></textarea></div>
+      <div class="pane hidden" data-lang="python"><label>Python</label><textarea id="sb-python"></textarea></div>
+      <div class="pane hidden" data-lang="sql"><label>SQL</label><textarea id="sb-sql"></textarea></div>
+    </div>
+    <div class="output">
+      <iframe id="sbFrame" sandbox="allow-scripts allow-modals" title="Resultado"></iframe>
+      <pre id="sbConsole"></pre>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
