@@ -1,9 +1,10 @@
-// >>> Cole aqui a configuração do seu app Web (Console Firebase > Configurações do projeto) <<<
+// Configuração do app Web (chave pública por design — a segurança vem do Auth + firestore.rules)
 export const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU-PROJECT-ID.firebaseapp.com",
-  projectId: "SEU-PROJECT-ID",
-  storageBucket: "SEU-PROJECT-ID.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:0000000000000000"
+  apiKey: "AIzaSyDbRKpGmHu814A2F0gkV6LEtBAHq7-ZedM",
+  authDomain: "trabconjunto.firebaseapp.com",
+  projectId: "trabconjunto",
+  storageBucket: "trabconjunto.firebasestorage.app",
+  messagingSenderId: "152340110745",
+  appId: "1:152340110745:web:0feb10c0ef83cbb93dc708",
+  measurementId: "G-CLW0GH4MLS"
 };
