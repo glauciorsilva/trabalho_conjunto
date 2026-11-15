@@ -4,7 +4,7 @@ Ambiente colaborativo para programar a dois, à distância: **chat**, **códigos
 
 ## Funcionalidades
 - **Login com e-mail e senha** (Firebase Auth), com verificação de e-mail e recuperação de senha.
-- **Lista de membros**: só os e-mails listados em `firestore.rules` acessam os dados — mesmo que alguém crie conta, não lê nada.
+- **Primeiro acesso = cadastro**: digite e-mail e senha; se a conta não existe, é criada. As **2 primeiras contas** viram membros e o acesso fecha (limite em `maxMembers()` no `firestore.rules`).
 - **💬 Chat** em tempo real. Mensagens podem ser marcadas como código (Python/JS/HTML/CSS/SQL) e abertas direto no Sandbox.
 - **📁 Códigos**: arquivos compartilhados. Cada "Salvar versão" (ou Ctrl+S) grava uma revisão imutável com **autor, data, descrição e +/− linhas**. Dá para ver e restaurar qualquer versão. Aviso quando o outro salvou algo enquanto você editava.
 - **🧪 Sandbox** (roda no navegador, isolado em iframe):
@@ -20,7 +20,7 @@ Ambiente colaborativo para programar a dois, à distância: **chat**, **códigos
 3. **Firestore Database** → criar banco (modo produção).
 4. Configurações do projeto → adicionar **app Web** → copie o objeto de config para `public/js/firebase-config.js`.
 5. Troque `SEU-PROJECT-ID` em `.firebaserc`.
-6. Em `firestore.rules`, coloque **os e-mails de vocês dois** na lista de `isMember()`.
+6. Publique `firestore.rules` (Console → Firestore → Regras, colar e Publicar).
 7. Deploy:
    ```bash
    npm install -g firebase-tools

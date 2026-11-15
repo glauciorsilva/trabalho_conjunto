@@ -5,7 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, collection, doc, addDoc, setDoc, deleteDoc, onSnapshot, query, orderBy,
-  limit, serverTimestamp, writeBatch
+  limit, serverTimestamp, writeBatch, getDoc, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
@@ -31,34 +31,34 @@ let me = null;
 const unsubs = [];
 
 /* ================= AUTENTICAÇÃO ================= */
-let signupMode = false;
-$("#toggleMode").onclick = () => {
-  signupMode = !signupMode;
-  $("#displayName").classList.toggle("hidden", !signupMode);
-  $("#authSubmit").textContent = signupMode ? "Cadastrar" : "Entrar";
-  $("#toggleMode").textContent = signupMode ? "Já tenho conta — entrar" : "Não tem conta? Cadastrar";
-};
 const authErr = (e) => ({
-  "auth/invalid-credential": "E-mail ou senha inválidos.",
-  "auth/email-already-in-use": "E-mail já cadastrado.",
+  "auth/invalid-credential": "Senha incorreta.",
+  "auth/wrong-password": "Senha incorreta.",
+  "auth/invalid-email": "E-mail inválido.",
   "auth/weak-password": "Senha fraca (mín. 6 caracteres).",
   "auth/too-many-requests": "Muitas tentativas. Aguarde um pouco."
 }[e.code] || e.message);
 
+// Um só formulário: tenta entrar; se a conta não existe, cria (primeiro acesso).
 $("#authForm").onsubmit = async (ev) => {
   ev.preventDefault();
   const email = $("#email").value.trim(), pwd = $("#password").value;
-  $("#authMsg").textContent = "";
+  $("#authMsg").textContent = "Aguarde…";
   try {
-    if (signupMode) {
+    await signInWithEmailAndPassword(auth, email, pwd);
+    $("#authMsg").textContent = "";
+  } catch (e) {
+    if (!["auth/invalid-credential", "auth/user-not-found"].includes(e.code)) return ($("#authMsg").textContent = authErr(e));
+    try {
       const { user } = await createUserWithEmailAndPassword(auth, email, pwd);
       const name = $("#displayName").value.trim();
       if (name) await updateProfile(user, { displayName: name });
       await sendEmailVerification(user);
-    } else {
-      await signInWithEmailAndPassword(auth, email, pwd);
+      $("#authMsg").textContent = "";
+    } catch (e2) {
+      $("#authMsg").textContent = e2.code === "auth/email-already-in-use" ? "Senha incorreta." : authErr(e2);
     }
-  } catch (e) { $("#authMsg").textContent = authErr(e); }
+  }
 };
 $("#resetPwd").onclick = async () => {
   const email = $("#email").value.trim();
@@ -83,14 +83,35 @@ onAuthStateChanged(auth, (user) => {
   me = user;
   if (!user) return show("#auth");
   if (!user.emailVerified) return gate("Verifique seu e-mail", `Enviamos um link para ${user.email}. Confirme e clique em recarregar.`, true);
-  $("#me").textContent = who(user);
-  show("#app");
-  startChat();
-  startFiles();
+  ensureMember(user).then((ok) => {
+    if (!ok) return gate("Acesso fechado", "Este ambiente já tem todos os membros cadastrados.", false);
+    $("#me").textContent = who(user);
+    show("#app");
+    startChat();
+    startFiles();
+  }).catch(denied);
 });
 
+// Primeiro acesso: ocupa uma vaga de membro (as regras limitam o total).
+async function ensureMember(user) {
+  const ref = doc(db, "members", user.uid);
+  if ((await getDoc(ref)).exists()) return true;
+  const cfg = doc(db, "config", "members");
+  try {
+    await runTransaction(db, async (tx) => {
+      const c = await tx.get(cfg);
+      tx.set(cfg, { count: (c.exists() ? c.data().count : 0) + 1 });
+      tx.set(ref, { email: user.email, name: who(user), joinedAt: serverTimestamp() });
+    });
+    return true;
+  } catch (e) {
+    if (e.code === "permission-denied") return false;
+    throw e;
+  }
+}
+
 function denied(e) {
-  if (e.code === "permission-denied") gate("Acesso não autorizado", "Sua conta não está na lista de membros. Peça ao administrador para incluir seu e-mail em firestore.rules.", false);
+  if (e.code === "permission-denied") gate("Acesso não autorizado", "Sua conta não é membro deste ambiente.", false);
   else console.error(e);
 }
 
